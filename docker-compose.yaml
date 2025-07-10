@@ -1,12 +1,24 @@
 version: '3.8'
+
 services:
+  api:
+    build: .
+    image: fastapi_app:latest
+    container_name: fastapi_app_container
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - db
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
   db:
     image: postgres:13
     container_name: fastapi_postgres_db
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: fastapi_db
+    env_file:
+      - ./.env
     ports:
       - "5433:5432"
     volumes:

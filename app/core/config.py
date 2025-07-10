@@ -1,27 +1,37 @@
 import os
-from dotenv import load_dotenv, find_dotenv, get_key
+from dotenv import load_dotenv
+# Remove the PostgresDsn import
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
+from typing import Any, Dict, Optional
 
-dotenv_path = find_dotenv()
-
-load_dotenv(dotenv_path)
+load_dotenv()
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "FastAPI E-commerce"
+    PROJECT_NAME: str = "Mock Livin MDA"
     API_V1_STR: str = "/api/v1"
 
-    # Database - Reading directly from the .env file path
-    DB_USER: str = get_key(dotenv_path, "POSTGRES_USER")
-    DB_PASSWORD: str = get_key(dotenv_path, "POSTGRES_PASSWORD")
-    DB_SERVER: str = get_key(dotenv_path, "DB_SERVER")
-    DB_PORT: str = get_key(dotenv_path, "DB_PORT")
-    DB_NAME: str = get_key(dotenv_path, "POSTGRES_DB")
-    DATABASE_URL: str = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}:{DB_PORT}/{DB_NAME}"
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    DB_SERVER: str
+    DB_PORT: str
+    POSTGRES_DB: str
+    DATABASE_URL: Optional[str] = None
 
-    # Security
-    SECRET_KEY: str = get_key(dotenv_path, "SECRET_KEY")
-    ALGORITHM: str = get_key(dotenv_path, "ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(get_key(dotenv_path, "ACCESS_TOKEN_EXPIRE_MINUTES"))
+    @model_validator(mode='before')
+    def get_database_url(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        if isinstance(values.get("DATABASE_URL"), str):
+            return values
+        dsn = (
+            f"postgresql://{values.get('POSTGRES_USER')}:{values.get('POSTGRES_PASSWORD')}@"
+            f"{values.get('DB_SERVER')}:{values.get('DB_PORT')}/{values.get('POSTGRES_DB')}"
+        )
+        values["DATABASE_URL"] = dsn
+        return values
+
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     class Config:
         case_sensitive = True
