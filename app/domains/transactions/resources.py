@@ -57,7 +57,7 @@ def create_payment(db: Session, user_id: uuid.UUID, payment: schemas.PaymentCrea
 
         product.stock -= payment.quantity
         
-        points_to_add = math.floor(total_cost * 0.01)
+        points_to_add = math.floor(total_cost * Decimal('0.01'))
         account.living_points += points_to_add
 
         db_transaction = Transaction(
